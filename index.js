@@ -19,11 +19,12 @@ const client = new MongoClient(uri, {
   useUnifiedTopology: true,
 });
 
-async function run() {
+async function server() {
   try {
     await client.connect();
     const database = client.db("my-portfolio");
     const projectsCollection = database.collection("projects");
+    const blogCollection = database.collection("bolgs");
 
     app.post("/projectBuild", async (req, res) => {
       const project = req.body;
@@ -75,11 +76,25 @@ async function run() {
       const result = await projectsCollection.deleteOne(query);
       res.json(result);
     });
+
+    // Blog
+
+    app.post("/blogBuild", async (req, res) => {
+      const blog = req.body;
+      const result = await blogCollection.insertOne(blog);
+      res.json(result);
+    });
+
+    app.get("/getBlogs", async (req, res) => {
+      const cursor = blogCollection.find({});
+      const blogs = await cursor.toArray();
+      res.send(blogs);
+    });
   } finally {
     // await client.close();
   }
 }
-run().catch(console.dir);
+server().catch(console.dir);
 
 app.get("/", (req, res) => {
   res.send("my portfolio server Running");
